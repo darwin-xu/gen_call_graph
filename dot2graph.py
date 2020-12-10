@@ -71,6 +71,7 @@ def extractFor(nodes, function):
     printHeader(function)
     for key in nodes:
         if nodes[key]._label == function:
+            nodes[key].touched = True
             walkThough(nodes[key])
     printFooter()
 
@@ -81,9 +82,11 @@ def checkAllGraph(nodes):
         for c in nodes[key]._children:
             print("\t->", c._nodeID)
 
+
 def fixNode(node) :
     if node._label is None:
         node._label = node._nodeID
+
 
 def simplifyNodes(nodes):
     newNodes = {}
@@ -118,6 +121,7 @@ def combileNodes(nodes1, nodes2):
         for c in nodes2[key]._children:
             insertOrUpdate(nodes1, c._nodeID, c._label)
             nodes1[nodes2[key]._nodeID]._children.append(nodes1[c._nodeID])
+
 
 totalFuncs = {}
 for arg in argv[1:]:
