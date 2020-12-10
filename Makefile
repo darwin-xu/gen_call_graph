@@ -8,13 +8,17 @@ c.ll: c.cpp
 	clang++ -S -emit-llvm c.cpp
 
 main.ll.callgraph.dot: main.ll
-	opt -analyze -std-link-opts -dot-callgraph main.ll
+	opt -analyze -dot-callgraph main.ll
+	mv callgraph.dot main.ll.callgraph.dot
 
+#may need to remove -std-link-opts
 b.ll.callgraph.dot: b.ll
-	opt -analyze -std-link-opts -dot-callgraph b.ll
+	opt -analyze -dot-callgraph b.ll
+	mv callgraph.dot b.ll.callgraph.dot
 
 c.ll.callgraph.dot: c.ll
-	opt -analyze -std-link-opts -dot-callgraph c.ll
+	opt -analyze -dot-callgraph c.ll
+	mv callgraph.dot c.ll.callgraph.dot
 
 test: main.ll.callgraph.dot b.ll.callgraph.dot c.ll.callgraph.dot
 

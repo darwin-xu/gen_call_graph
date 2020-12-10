@@ -1,0 +1,11 @@
+#!/bin/zsh
+
+clang++ -S -emit-llvm $1
+
+filename="${1%.*}"
+
+opt -analyze -dot-callgraph $filename.ll
+
+mv callgraph.dot $filename.ll.callgraph.dot
+
+cat $filename.ll.callgraph.dot | dot -Tpng -o$filename.png

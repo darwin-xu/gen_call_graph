@@ -9,6 +9,7 @@ class Node:
         self._nodeID = nodeID
         self._label = label
         self._children = []
+        self.touched = False
 
 
 def insertOrUpdate(nodes, nodeID, label=None):
@@ -52,7 +53,9 @@ def walkThough(node):
     printFunctionRecord(node._nodeID, node._label)
     for c in node._children:
         printFunctionCall(node._nodeID, c._nodeID)
-        walkThough(c)
+        if not c.touched:
+            c.touched = True
+            walkThough(c)
 
 
 def printHeader(name):
@@ -74,16 +77,21 @@ def extractFor(nodes, function):
 
 def checkAllGraph(nodes):
     for key in nodes:
-        print(key, nodes[key]._nodeID, nodes[key]._label)
+        print("[", key, nodes[key]._nodeID, nodes[key]._label, "]")
         for c in nodes[key]._children:
-            print("->", c._nodeID)
+            print("\t->", c._nodeID)
 
+def fixNode(node) :
+    if node._label is None:
+        node._label = node._nodeID
 
 def simplifyNodes(nodes):
     newNodes = {}
     for key in nodes:
+        fixNode(nodes[key])
         insertOrUpdate(newNodes, nodes[key]._label, nodes[key]._label)
         for c in nodes[key]._children:
+            fixNode(c)
             insertOrUpdate(newNodes, c._label, c._label)
             newNodes[nodes[key]._label]._children.append(newNodes[c._label])
     return newNodes
@@ -128,4 +136,4 @@ for arg in argv[1:]:
 
 #checkAllGraph(totalFuncs)
 
-extractFor(insimplifyNodes(totalFuncs), "_Z1Bv")
+extractFor(insimplifyNodes(totalFuncs), "_Z1Dv")
