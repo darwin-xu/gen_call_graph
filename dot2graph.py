@@ -8,8 +8,9 @@ class Node:
     def __init__(self, nodeID, label):
         self._nodeID = nodeID
         self._label = label
+        self._parents = set()
         self._children = set()
-        self.touched = False
+        self._touched = False
 
 
 def insertOrUpdate(nodes, nodeID, label=None):
@@ -37,6 +38,7 @@ def parseFile(filename):
             insertOrUpdate(nodes, m.group(1))
             insertOrUpdate(nodes, m.group(2))
             nodes[m.group(1)]._children.add(nodes[m.group(2)])
+            nodes[m.group(2)]._parents.add(nodes[m.group(1)])
 
     return nodes
 
@@ -49,13 +51,13 @@ def printFunctionCall(nodeID1, nodeID2):
     print("\t", nodeID1, " -> ", nodeID2, ";", sep="")
 
 
-def walkThough(node):
+def walkForward(node):
     printFunctionRecord(node._nodeID, node._label)
     for c in node._children:
         printFunctionCall(node._nodeID, c._nodeID)
-        if not c.touched:
-            c.touched = True
-            walkThough(c)
+        if not c._touched:
+            c._touched = True
+            walkForward(c)
 
 
 def printHeader(name):
@@ -67,12 +69,13 @@ def printFooter():
     print("}")
 
 
-def extractFor(nodes, function):
-    printHeader(function)
+def extractCallGraph(nodes, name):
+    printHeader(name)
     for key in nodes:
-        if nodes[key]._label == function:
-            nodes[key].touched = True
-            walkThough(nodes[key])
+        if nodes[key]._label == name:
+            nodes[key]._touched = True
+            walkForward(nodes[key])
+            break
     printFooter()
 
 
@@ -97,6 +100,7 @@ def simplifyNodes(nodes):
             fixNode(c)
             insertOrUpdate(newNodes, c._label, c._label)
             newNodes[nodes[key]._label]._children.add(newNodes[c._label])
+            newNodes[c._label]._parents.add(newNodes[nodes[key]._label])
     return newNodes
 
 
@@ -112,6 +116,8 @@ def insimplifyNodes(nodes):
             insertOrUpdate(newNodes, objToKey(c), c._label)
             newNodes[objToKey(nodes[key])]._children.add(
                 newNodes[objToKey(c)])
+            newNodes[objToKey(c)]._parents.add(newNodes[objToKey(nodes[key])])
+
     return newNodes
 
 
@@ -121,6 +127,25 @@ def combileNodes(nodes1, nodes2):
         for c in nodes2[key]._children:
             insertOrUpdate(nodes1, c._nodeID, c._label)
             nodes1[nodes2[key]._nodeID]._children.add(nodes1[c._nodeID])
+
+
+def walkBackward(node):
+    printFunctionRecord(node._nodeID, node._label)
+    for p in node._parents:
+        printFunctionCall(p._nodeID, node._nodeID)
+        if not p._touched:
+            p._touched = True
+            walkBackward(p)
+
+
+def extractCallerGraph(nodes, name):
+    printHeader(name)
+    for key in nodes:
+        if nodes[key]._label == name:
+            nodes[key]._touched = True
+            walkBackward(nodes[key])
+            break
+    printFooter()
 
 
 totalFuncs = {}
@@ -140,4 +165,6 @@ for arg in argv[1:]:
 
 #checkAllGraph(totalFuncs)
 
-extractFor(insimplifyNodes(totalFuncs), "_Z1Dv")
+# extractCallGraph(insimplifyNodes(totalFuncs), "_Z1Dv")
+
+extractCallerGraph(insimplifyNodes(totalFuncs), "_Z1Dv")
