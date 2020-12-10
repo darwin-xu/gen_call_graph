@@ -8,7 +8,7 @@ class Node:
     def __init__(self, nodeID, label):
         self._nodeID = nodeID
         self._label = label
-        self._children = []
+        self._children = set()
         self.touched = False
 
 
@@ -36,7 +36,7 @@ def parseFile(filename):
             #print(m.group(1), "->", m.group(2))
             insertOrUpdate(nodes, m.group(1))
             insertOrUpdate(nodes, m.group(2))
-            nodes[m.group(1)]._children.append(nodes[m.group(2)])
+            nodes[m.group(1)]._children.add(nodes[m.group(2)])
 
     return nodes
 
@@ -96,7 +96,7 @@ def simplifyNodes(nodes):
         for c in nodes[key]._children:
             fixNode(c)
             insertOrUpdate(newNodes, c._label, c._label)
-            newNodes[nodes[key]._label]._children.append(newNodes[c._label])
+            newNodes[nodes[key]._label]._children.add(newNodes[c._label])
     return newNodes
 
 
@@ -110,7 +110,7 @@ def insimplifyNodes(nodes):
         insertOrUpdate(newNodes, objToKey(nodes[key]), nodes[key]._label)
         for c in nodes[key]._children:
             insertOrUpdate(newNodes, objToKey(c), c._label)
-            newNodes[objToKey(nodes[key])]._children.append(
+            newNodes[objToKey(nodes[key])]._children.add(
                 newNodes[objToKey(c)])
     return newNodes
 
@@ -120,7 +120,7 @@ def combileNodes(nodes1, nodes2):
         insertOrUpdate(nodes1, nodes2[key]._nodeID, nodes2[key]._label)
         for c in nodes2[key]._children:
             insertOrUpdate(nodes1, c._nodeID, c._label)
-            nodes1[nodes2[key]._nodeID]._children.append(nodes1[c._nodeID])
+            nodes1[nodes2[key]._nodeID]._children.add(nodes1[c._nodeID])
 
 
 totalFuncs = {}
